@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: waste-collection-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm run start:prod
+    branch: main
+    regions:
+      - oregon
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: "postgresql://postgres.ldxeimimyguqakuzjeig:12345678@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+      - key: DIRECT_URL
+        value: "postgresql://postgres.ldxeimimyguqakuzjeig:12345678@aws-0-eu-central-1.pooler.supabase.com:5432/postgres"
+      - key: SUPABASE_URL
+        value: "https://ldxeimimyguqakuzjeig.supabase.co"
+      - key: SUPABASE_ANON_KEY
+        value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkeGVpbWlteWd1cWFrdXpqZWlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg1OTAyMTMsImV4cCI6MjA1NDE2NjIxM30.MhzC-kepS_pZw2viOJ71jvNJ7nbHX0Jy1YByJVqS9v4"
+      - key: SUPABASE_JWT_SECRET
+        value: "iZnhlfA485bnPUv1aSAaCWs6APuwTrirzKnn7RFWF5qTQZ/VK8TgwcU/fHqsy0CkjYqysP4JBmt0trtLeCc1Ww=="
+      - key: DEBUG
+        value: "*"
