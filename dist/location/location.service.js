@@ -12,74 +12,51 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LocationService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-const client_1 = require("@prisma/client");
+const supabase_js_1 = require("@supabase/supabase-js");
 let LocationService = class LocationService {
     constructor(prisma) {
         this.prisma = prisma;
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+        if (!supabaseUrl || !supabaseAnonKey) {
+            throw new Error('Les variables d\'environnement SUPABASE_URL et SUPABASE_ANON_KEY sont nécessaires');
+        }
+        this.supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey);
     }
-    async findNearbyCollectors(searchDto) {
-        const lat = Number(searchDto.latitude);
-        const lon = Number(searchDto.longitude);
-        const radius = Number(searchDto.radius);
-        const radiusInDegrees = radius / 111;
-        const minLat = lat - radiusInDegrees;
-        const maxLat = lat + radiusInDegrees;
-        const minLon = lon - radiusInDegrees;
-        const maxLon = lon + radiusInDegrees;
-        const collectors = await this.prisma.user.findMany({
-            where: {
-                type: client_1.UserType.PRE_COLLECTOR,
-                activeLocation: {
-                    AND: [
-                        {
-                            latitude: {
-                                gte: minLat,
-                                lte: maxLat
-                            }
-                        },
-                        {
-                            longitude: {
-                                gte: minLon,
-                                lte: maxLon
-                            }
-                        }
-                    ]
-                }
+    async updateLocation(preCollectorId, updateLocationDto) {
+        const activeLocation = await this.prisma.preCollectorLocation.upsert({
+            where: { preCollectorId },
+            update: {
+                latitude: updateLocationDto.latitude,
+                longitude: updateLocationDto.longitude,
             },
-            include: {
-                activeLocation: true
-            }
+            create: {
+                preCollectorId,
+                latitude: updateLocationDto.latitude,
+                longitude: updateLocationDto.longitude,
+            },
         });
-        return collectors
-            .filter(collector => {
-            const location = collector.activeLocation;
-            if (!location)
-                return false;
-            const distance = this.calculateDistance(lat, lon, location.latitude, location.longitude);
-            return distance <= radius;
-        })
-            .map(collector => ({
-            id: collector.id,
-            firstName: collector.firstName,
-            lastName: collector.lastName,
-            phoneNumber: collector.phoneNumber,
-            latitude: collector.activeLocation.latitude,
-            longitude: collector.activeLocation.longitude,
-            distance: this.calculateDistance(lat, lon, collector.activeLocation.latitude, collector.activeLocation.longitude)
-        }));
+        await this.prisma.preCollectorLocationHistory.create({
+            data: {
+                preCollectorId,
+                latitude: updateLocationDto.latitude,
+                longitude: updateLocationDto.longitude,
+            },
+        });
+        await this.supabase
+            .from('pre_collector_locations')
+            .upsert({
+            pre_collector_id: preCollectorId,
+            latitude: updateLocationDto.latitude,
+            longitude: updateLocationDto.longitude,
+            updated_at: new Date().toISOString(),
+        });
+        return activeLocation;
     }
-    calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = this.toRad(lat2 - lat1);
-        const dLon = this.toRad(lon2 - lon1);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
-    toRad(degrees) {
-        return degrees * (Math.PI / 180);
+    async getActiveLocation(preCollectorId) {
+        return this.prisma.preCollectorLocation.findUnique({
+            where: { preCollectorId },
+        });
     }
 };
 exports.LocationService = LocationService;

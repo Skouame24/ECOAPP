@@ -61,7 +61,6 @@ let CollectionRequestsController = CollectionRequestsController_1 = class Collec
         if (request.preCollectorId !== preCollectorId) {
             throw new common_1.ForbiddenException('Vous n\'êtes pas autorisé à modifier cette demande');
         }
-        this.logger.log(`Tentative de mise à jour du statut  ${(request.preCollectorId)} `);
         const isValidTransition = this.isValidStatusTransition(request.status, updateStatusDto.status);
         if (!isValidTransition) {
             throw new common_1.BadRequestException('Transition de statut non autorisée');

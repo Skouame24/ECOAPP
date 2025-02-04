@@ -16,17 +16,15 @@ class UpdateLocationDto {
 }
 exports.UpdateLocationDto = UpdateLocationDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Latitude de l\'utilisateur' }),
+    (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(-90),
-    (0, class_validator_1.Max)(90),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], UpdateLocationDto.prototype, "latitude", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Longitude de l\'utilisateur' }),
+    (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(-180),
-    (0, class_validator_1.Max)(180),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], UpdateLocationDto.prototype, "longitude", void 0);
 //# sourceMappingURL=update-location.dto.js.map

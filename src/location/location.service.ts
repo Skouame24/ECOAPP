@@ -1,92 +1,65 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { UserType } from '@prisma/client';
-import { SearchCollectorDto } from './dto/search-collectors.dto';
-import { CollectorWithDistance } from './types';
+import { UpdateLocationDto } from './dto/update-location.dto';
+import { createClient } from '@supabase/supabase-js';
 
 @Injectable()
 export class LocationService {
-  constructor(private prisma: PrismaService) {}
+  private supabase;
 
-  async findNearbyCollectors(searchDto: SearchCollectorDto): Promise<CollectorWithDistance[]> {
-    const lat = Number(searchDto.latitude);
-    const lon = Number(searchDto.longitude);
-    const radius = Number(searchDto.radius);
-    const radiusInDegrees = radius / 111;
+  constructor(private prisma: PrismaService) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
-    const minLat = lat - radiusInDegrees;
-    const maxLat = lat + radiusInDegrees;
-    const minLon = lon - radiusInDegrees;
-    const maxLon = lon + radiusInDegrees;
+    // Vérifie que les variables d'environnement sont bien définies
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Les variables d\'environnement SUPABASE_URL et SUPABASE_ANON_KEY sont nécessaires');
+    }
 
-    const collectors = await this.prisma.user.findMany({
-      where: {
-        type: UserType.PRE_COLLECTOR,
-        activeLocation: {
-          AND: [
-            {
-              latitude: {
-                gte: minLat,
-                lte: maxLat
-              }
-            },
-            {
-              longitude: {
-                gte: minLon,
-                lte: maxLon
-              }
-            }
-          ]
-        }
+    // Crée le client Supabase
+    this.supabase = createClient(supabaseUrl, supabaseAnonKey);
+  }
+
+  async updateLocation(preCollectorId: string, updateLocationDto: UpdateLocationDto) {
+    // Mettre à jour la position active
+    const activeLocation = await this.prisma.preCollectorLocation.upsert({
+      where: { preCollectorId },
+      update: {
+        latitude: updateLocationDto.latitude,
+        longitude: updateLocationDto.longitude,
       },
-      include: {
-        activeLocation: true
-      }
+      create: {
+        preCollectorId,
+        latitude: updateLocationDto.latitude,
+        longitude: updateLocationDto.longitude,
+      },
     });
 
-    return collectors
-      .filter(collector => {
-        const location = collector.activeLocation;
-        if (!location) return false;
-        
-        const distance = this.calculateDistance(
-          lat,
-          lon,
-          location.latitude,
-          location.longitude
-        );
-        
-        return distance <= radius;
-      })
-      .map(collector => ({
-        id: collector.id,
-        firstName: collector.firstName,
-        lastName: collector.lastName,
-        phoneNumber: collector.phoneNumber,
-        latitude: collector.activeLocation!.latitude,
-        longitude: collector.activeLocation!.longitude,
-        distance: this.calculateDistance(
-          lat,
-          lon,
-          collector.activeLocation!.latitude,
-          collector.activeLocation!.longitude
-        )
-      }));
+    // Enregistrer dans l'historique
+    await this.prisma.preCollectorLocationHistory.create({
+      data: {
+        preCollectorId,
+        latitude: updateLocationDto.latitude,
+        longitude: updateLocationDto.longitude,
+      },
+    });
+
+    // Publier la mise à jour via Supabase Realtime
+    await this.supabase
+      .from('pre_collector_locations')
+      .upsert({
+        pre_collector_id: preCollectorId,
+        latitude: updateLocationDto.latitude,
+        longitude: updateLocationDto.longitude,
+        updated_at: new Date().toISOString(),
+      });
+
+    return activeLocation;
   }
 
-  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Rayon de la Terre en kilomètres
-    const dLat = this.toRad(lat2 - lat1);
-    const dLon = this.toRad(lon2 - lon1);
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  }
-
-  private toRad(degrees: number): number {
-    return degrees * (Math.PI/180);
+  async getActiveLocation(preCollectorId: string) {
+    return this.prisma.preCollectorLocation.findUnique({
+      where: { preCollectorId },
+    });
   }
 }

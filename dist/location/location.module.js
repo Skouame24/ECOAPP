@@ -10,15 +10,14 @@ exports.LocationModule = void 0;
 const common_1 = require("@nestjs/common");
 const location_service_1 = require("./location.service");
 const location_controller_1 = require("./location.controller");
-const prisma_module_1 = require("../prisma/prisma.module");
+const prisma_service_1 = require("../prisma/prisma.service");
 let LocationModule = class LocationModule {
 };
 exports.LocationModule = LocationModule;
 exports.LocationModule = LocationModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule],
         controllers: [location_controller_1.LocationController],
-        providers: [location_service_1.LocationService],
+        providers: [location_service_1.LocationService, prisma_service_1.PrismaService],
         exports: [location_service_1.LocationService],
     })
 ], LocationModule);

@@ -17,36 +17,39 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const location_service_1 = require("./location.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const types_1 = require("./types");
-const search_collectors_dto_1 = require("./dto/search-collectors.dto");
+const user_decorator_1 = require("../users/decorator/user.decorator");
+const update_location_dto_1 = require("./dto/update-location.dto");
 let LocationController = class LocationController {
     constructor(locationService) {
         this.locationService = locationService;
     }
-    async findNearbyCollectors(searchParams) {
-        return this.locationService.findNearbyCollectors(searchParams);
+    async updateLocation(preCollectorId, updateLocationDto) {
+        return this.locationService.updateLocation(preCollectorId, updateLocationDto);
+    }
+    async getActiveLocation(preCollectorId) {
+        return this.locationService.getActiveLocation(preCollectorId);
     }
 };
 exports.LocationController = LocationController;
 __decorate([
-    (0, common_1.Get)('collectors'),
-    (0, swagger_1.ApiOperation)({
-        summary: 'Rechercher les pré-collecteurs à proximité',
-        description: 'Trouve les pré-collecteurs disponibles dans un rayon donné'
-    }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        description: 'Liste des pré-collecteurs trouvés avec leurs distances',
-        type: types_1.CollectorWithDistance,
-        isArray: true
-    }),
-    __param(0, (0, common_1.Query)()),
+    (0, common_1.Post)('update'),
+    (0, swagger_1.ApiOperation)({ summary: 'Mettre à jour la position du pré-collecteur' }),
+    __param(0, (0, user_decorator_1.User)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [search_collectors_dto_1.SearchCollectorDto]),
+    __metadata("design:paramtypes", [String, update_location_dto_1.UpdateLocationDto]),
     __metadata("design:returntype", Promise)
-], LocationController.prototype, "findNearbyCollectors", null);
+], LocationController.prototype, "updateLocation", null);
+__decorate([
+    (0, common_1.Get)('active-location'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtenir la dernière position du pré-collecteur' }),
+    __param(0, (0, user_decorator_1.User)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], LocationController.prototype, "getActiveLocation", null);
 exports.LocationController = LocationController = __decorate([
-    (0, swagger_1.ApiTags)('Location'),
+    (0, swagger_1.ApiTags)('location'),
     (0, common_1.Controller)('location'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
