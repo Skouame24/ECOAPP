@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String           @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String          @unique
+  password      String
+  phoneNumber   String
+  type          UserType
+  // Ajout des coordonnées de localisation pour tous les utilisateurs
+  latitude      Float?
+  longitude     Float?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  
+  // Relations
+  clientRequests      CollectionRequest[]    @relation("ClientRequests")
+  collectorRequests   CollectionRequest[]    @relation("CollectorRequests")
+  notifications       Notification[]
+  // Relation avec la localisation active du pré-collecteur
+  activeLocation      PreCollectorLocation?
+  // Historique des localisations pour les pré-collecteurs
+  locationHistory     PreCollectorLocationHistory[]
+
+  @@map("users")
+}
+
+model CollectionRequest {
+  id              String            @id @default(uuid())
+  clientId        String
+  preCollectorId  String?
+  wasteType       WasteType
+  weight          Float
+  price           Float
+  status          CollectionStatus  @default(PENDING)
+  // Coordonnées du lieu de collecte
+  pickupLatitude  Float
+  pickupLongitude Float
+  createdAt       DateTime          @default(now())
+  validatedAt     DateTime?
+  
+  // Relations
+  client          User              @relation("ClientRequests", fields: [clientId], references: [id])
+  preCollector    User?             @relation("CollectorRequests", fields: [preCollectorId], references: [id])
+  transactions    Transaction[]
+  collectionPoint CollectionPoint?  @relation(fields: [pointId], references: [id])
+  pointId         String?
+
+  @@map("collections")
+}
+
+model CollectionPoint {
+  id          String        @id @default(uuid())
+  name        String
+  address     String
+  latitude    Float
+  longitude   Float
+  wasteTypes  WasteType[]
+  schedule    String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  collections CollectionRequest[]
+
+  @@map("collection_points")
+}
+
+model Transaction {
+  id            String            @id @default(uuid())
+  collectionId  String
+  amount        Float
+  status        TransactionStatus @default(PENDING)
+  createdAt     DateTime          @default(now())
+  
+  // Relations
+  collection    CollectionRequest @relation(fields: [collectionId], references: [id])
+
+  @@map("transactions")
+}
+
+model Notification {
+  id          String             @id @default(uuid())
+  userId      String
+  message     String
+  status      NotificationStatus @default(UNREAD)
+  createdAt   DateTime           @default(now())
+  
+  // Relations
+  user        User               @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+// Localisation active du pré-collecteur
+model PreCollectorLocation {
+  id              String    @id @default(uuid())
+  preCollectorId  String    @unique
+  latitude        Float
+  longitude       Float
+  updatedAt       DateTime  @default(now()) @updatedAt
+  
+  // Relations
+  preCollector    User      @relation(fields: [preCollectorId], references: [id])
+
+  @@map("pre_collector_locations")
+}
+
+// Historique des localisations du pré-collecteur
+model PreCollectorLocationHistory {
+  id              String    @id @default(uuid())
+  preCollectorId  String
+  latitude        Float
+  longitude       Float
+  createdAt       DateTime  @default(now())
+  
+  // Relations
+  preCollector    User      @relation(fields: [preCollectorId], references: [id])
+
+  @@map("pre_collector_location_history")
+}
+
+enum UserType {
+  CLIENT
+  PRE_COLLECTOR
+}
+
+enum WasteType {
+  ORGANIC
+  PLASTIC
+  METAL
+  GLASS
+  PAPER
+  ELECTRONIC
+}
+
+enum CollectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+}
