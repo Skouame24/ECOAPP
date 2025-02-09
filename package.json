@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "prisma generate && next build",
+    "build": "nest build",
+    "postinstall": "prisma generate",
     "start": "node dist/main.js",
     "format": "prettier --write \"src/**/*.ts\"",
     "start:dev": "nodemon",
