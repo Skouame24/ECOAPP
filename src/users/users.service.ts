@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -195,6 +195,27 @@ export class UsersService {
       locationHistory: user.locationHistory
     };
   }
+  async findAllUsers(type: UserType) {
+    try {
+      const users = await this.prisma.user.findMany({
+        where: { type },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phoneNumber: true,
+          type: true,
+          createdAt: true,
+        },
+      });
+  
+      return users;
+    } catch (error) {
+      throw new InternalServerErrorException('Erreur lors de la récupération des utilisateurs');
+    }
+  }
+  
 
   async findNearbyPreCollectors(latitude: number, longitude: number, radiusInKm: number = 5) {
     // Conversion explicite des paramètres en nombres à virgule flottante

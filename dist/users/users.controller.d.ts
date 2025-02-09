@@ -17,6 +17,24 @@ export declare class UsersController {
         createdAt: Date;
         updatedAt: Date;
     }>;
+    findAllClients(): Promise<{
+        type: import(".prisma/client").$Enums.UserType;
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        phoneNumber: string;
+        createdAt: Date;
+    }[]>;
+    findAllPreCollectors(): Promise<{
+        type: import(".prisma/client").$Enums.UserType;
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        phoneNumber: string;
+        createdAt: Date;
+    }[]>;
     findOne(id: string): Promise<{
         type: import(".prisma/client").$Enums.UserType;
         latitude: number | null;

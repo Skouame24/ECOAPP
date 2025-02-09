@@ -21,12 +21,19 @@ const update_location_dto_1 = require("./dto/update-location.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const user_responses_1 = require("./responses/user.responses");
 const create_user_dto_1 = require("./dto/create-user.dto");
+const client_1 = require("@prisma/client");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
     }
     async create(createUserDto) {
         return this.usersService.create(createUserDto);
+    }
+    async findAllClients() {
+        return this.usersService.findAllUsers(client_1.UserType.CLIENT);
+    }
+    async findAllPreCollectors() {
+        return this.usersService.findAllUsers(client_1.UserType.PRE_COLLECTOR);
     }
     async findOne(id) {
         return this.usersService.findById(id);
@@ -57,6 +64,26 @@ __decorate([
     __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)('clients'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: "Obtenir la liste de tous les clients" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Liste des clients", isArray: true }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "findAllClients", null);
+__decorate([
+    (0, common_1.Get)('precollectors'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: "Obtenir la liste de tous les pré-collecteurs" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Liste des pré-collecteurs", isArray: true }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "findAllPreCollectors", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

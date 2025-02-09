@@ -2,6 +2,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { UserType } from '@prisma/client';
 export declare class UsersService {
     private prisma;
     constructor(prisma: PrismaService);
@@ -77,5 +78,14 @@ export declare class UsersService {
             preCollectorId: string;
         }[];
     }>;
+    findAllUsers(type: UserType): Promise<{
+        type: import(".prisma/client").$Enums.UserType;
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        phoneNumber: string;
+        createdAt: Date;
+    }[]>;
     findNearbyPreCollectors(latitude: number, longitude: number, radiusInKm?: number): Promise<unknown>;
 }

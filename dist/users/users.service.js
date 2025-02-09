@@ -179,6 +179,26 @@ let UsersService = class UsersService {
             locationHistory: user.locationHistory
         };
     }
+    async findAllUsers(type) {
+        try {
+            const users = await this.prisma.user.findMany({
+                where: { type },
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phoneNumber: true,
+                    type: true,
+                    createdAt: true,
+                },
+            });
+            return users;
+        }
+        catch (error) {
+            throw new common_1.InternalServerErrorException('Erreur lors de la récupération des utilisateurs');
+        }
+    }
     async findNearbyPreCollectors(latitude, longitude, radiusInKm = 5) {
         const preCollectors = await this.prisma.$queryRaw `
       WITH distances AS (

@@ -22,6 +22,7 @@ import { UpdateLocationDto } from './dto/update-location.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserResponse, UserLocationResponse } from './responses/user.responses';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserType } from '@prisma/client';
 
 @ApiTags('users')
 @Controller('users')
@@ -37,6 +38,25 @@ export class UsersController {
   async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
+
+  @Get('clients')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Obtenir la liste de tous les clients" })
+  @ApiResponse({ status: 200, description: "Liste des clients", isArray: true })
+  async findAllClients() {
+    return this.usersService.findAllUsers(UserType.CLIENT);
+  }
+
+  @Get('precollectors')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Obtenir la liste de tous les pré-collecteurs" })
+  @ApiResponse({ status: 200, description: "Liste des pré-collecteurs", isArray: true })
+  async findAllPreCollectors() {
+    return this.usersService.findAllUsers(UserType.PRE_COLLECTOR);
+  }
+
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
@@ -83,6 +103,9 @@ export class UsersController {
   async getUserLocations(@Param('id') id: string) {
     return this.usersService.getUserLocations(id);
   }
+
+
+
 
   @Get('nearby/collectors')
   @UseGuards(JwtAuthGuard)
