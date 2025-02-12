@@ -13,6 +13,9 @@ CREATE TYPE "TransactionStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED');
 -- CreateEnum
 CREATE TYPE "NotificationStatus" AS ENUM ('UNREAD', 'READ');
 
+-- CreateEnum
+CREATE TYPE "PointCategory" AS ENUM ('POUBELLE', 'CENTRE_TRI', 'DECHETTERIE', 'TOUS');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -26,6 +29,7 @@ CREATE TABLE "users" (
     "longitude" DOUBLE PRECISION,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "category" "PointCategory",
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -56,6 +60,7 @@ CREATE TABLE "collection_points" (
     "latitude" DOUBLE PRECISION NOT NULL,
     "longitude" DOUBLE PRECISION NOT NULL,
     "wasteTypes" "WasteType"[],
+    "category" "PointCategory" NOT NULL DEFAULT 'POUBELLE',
     "schedule" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,

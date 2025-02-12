@@ -1,4 +1,4 @@
-import { UserType } from '@prisma/client';
+import { PointCategory, UserType } from '@prisma/client';
 
 export interface IUser {
   id: string;
@@ -6,4 +6,5 @@ export interface IUser {
   firstName: string;
   lastName: string;
   type: UserType;
+  category:PointCategory
 }

@@ -18,6 +18,7 @@ export const User = createParamDecorator(
       lastName: request.user.lastName,
       phoneNumber: request.user.phoneNumber,
       type: request.user.type,
+      category: request.user.category, // Add category field
       latitude: request.user.latitude,
       longitude: request.user.longitude,
       createdAt: request.user.createdAt,

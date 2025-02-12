@@ -4,22 +4,39 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import * as bcrypt from 'bcrypt';
-import { Prisma, UserType } from '@prisma/client';
+import { Prisma, UserType, PointCategory } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger(UsersService.name); // Create a logger instance
+  private readonly logger = new Logger(UsersService.name);
 
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
     try {
+      // Validate category for PRE_COLLECTOR
+      if (createUserDto.type === UserType.PRE_COLLECTOR && !createUserDto.category) {
+        throw new BadRequestException('La catégorie est requise pour les pré-collecteurs');
+      }
+  
+      // Ensure category is only set for PRE_COLLECTOR
+      if (createUserDto.type === UserType.CLIENT && createUserDto.category) {
+        throw new BadRequestException('La catégorie ne peut être définie que pour les pré-collecteurs');
+      }
+  
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-
+  
       const user = await this.prisma.user.create({
         data: {
-          ...createUserDto,
+          firstName: createUserDto.firstName,
+          lastName: createUserDto.lastName,
+          email: createUserDto.email,
           password: hashedPassword,
+          phoneNumber: createUserDto.phoneNumber,
+          type: createUserDto.type,
+          category: createUserDto.type === UserType.PRE_COLLECTOR ? createUserDto.category : undefined,
+          latitude: createUserDto.latitude,
+          longitude: createUserDto.longitude,
         },
         select: {
           id: true,
@@ -28,6 +45,7 @@ export class UsersService {
           lastName: true,
           phoneNumber: true,
           type: true,
+          category: true,  // Make sure category is included in select
           latitude: true,
           longitude: true,
           createdAt: true,
@@ -35,7 +53,27 @@ export class UsersService {
           activeLocation: true,
         },
       });
-
+  
+      // Si c'est un PRE_COLLECTOR et qu'il a des coordonnées, créer sa position active
+      if (user.type === UserType.PRE_COLLECTOR && createUserDto.latitude && createUserDto.longitude) {
+        await this.prisma.preCollectorLocation.create({
+          data: {
+            preCollectorId: user.id,
+            latitude: createUserDto.latitude,
+            longitude: createUserDto.longitude,
+          },
+        });
+  
+        // Ajouter à l'historique des positions
+        await this.prisma.preCollectorLocationHistory.create({
+          data: {
+            preCollectorId: user.id,
+            latitude: createUserDto.latitude,
+            longitude: createUserDto.longitude,
+          },
+        });
+      }
+  
       return user;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -65,6 +103,7 @@ export class UsersService {
           lastName: true,
           phoneNumber: true,
           type: true,
+          category: true,
           latitude: true,
           longitude: true,
           createdAt: true,
@@ -87,61 +126,6 @@ export class UsersService {
     }
   }
 
-  async updateLocation(id: string, updateLocationDto: UpdateLocationDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: { 
-        type: true,
-        activeLocation: true 
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé');
-    }
-
-    if (user.type !== UserType.PRE_COLLECTOR) {
-      throw new BadRequestException('Seuls les pré-collecteurs peuvent mettre à jour leur position');
-    }
-
-    // Update user's current location
-    await this.prisma.user.update({
-      where: { id },
-      data: {
-        latitude: updateLocationDto.latitude,
-        longitude: updateLocationDto.longitude,
-      },
-    });
-
-    // Update or create active location
-    const activeLocation = await this.prisma.preCollectorLocation.upsert({
-      where: { preCollectorId: id },
-      update: {
-        latitude: updateLocationDto.latitude,
-        longitude: updateLocationDto.longitude,
-      },
-      create: {
-        preCollectorId: id,
-        latitude: updateLocationDto.latitude,
-        longitude: updateLocationDto.longitude,
-      },
-    });
-
-    // Add to location history
-    await this.prisma.preCollectorLocationHistory.create({
-      data: {
-        preCollectorId: id,
-        latitude: updateLocationDto.latitude,
-        longitude: updateLocationDto.longitude,
-      },
-    });
-
-    return {
-      ...activeLocation,
-      message: 'Position mise à jour avec succès'
-    };
-  }
-
   async findByEmail(email: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -153,6 +137,7 @@ export class UsersService {
         lastName: true,
         phoneNumber: true,
         type: true,
+        category: true,
         latitude: true,
         longitude: true,
         createdAt: true,
@@ -178,6 +163,7 @@ export class UsersService {
         lastName: true,
         phoneNumber: true,
         type: true,
+        category: true,
         latitude: true,
         longitude: true,
         createdAt: true,
@@ -198,7 +184,7 @@ export class UsersService {
           orderBy: {
             createdAt: 'desc'
           },
-          take: 100 // Limit to last 100 locations
+          take: 100
         }
       },
     });
@@ -209,35 +195,6 @@ export class UsersService {
 
     return user;
   }
-
-  async getUserLocations(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      include: {
-        activeLocation: true,
-        locationHistory: {
-          orderBy: {
-            createdAt: 'desc'
-          },
-          take: 100 // Limit to last 100 locations
-        }
-      }
-    });
-
-    if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé');
-    }
-
-    if (user.type !== UserType.PRE_COLLECTOR) {
-      throw new BadRequestException('Seuls les pré-collecteurs ont un historique de localisation');
-    }
-
-    return {
-      activeLocation: user.activeLocation,
-      locationHistory: user.locationHistory
-    };
-  }
-
 
   async findAllUsers(type: UserType) {
     try {
@@ -252,6 +209,7 @@ export class UsersService {
           email: true,
           phoneNumber: true,
           type: true,
+          category: true,
           latitude: true,
           longitude: true,
           createdAt: true,
@@ -290,9 +248,9 @@ export class UsersService {
           email: user.email,
           phoneNumber: user.phoneNumber,
           type: user.type,
+          category: user.category,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
-          // Always include latitude and longitude, using activeLocation if available
           latitude: user.activeLocation?.latitude ?? user.latitude,
           longitude: user.activeLocation?.longitude ?? user.longitude
         };
@@ -328,7 +286,6 @@ export class UsersService {
     }
   }
 
-  
   async findNearbyPreCollectors(latitude: number, longitude: number, radiusInKm: number = 5) {
     const preCollectors = await this.prisma.$queryRaw`
       WITH distances AS (
@@ -337,6 +294,7 @@ export class UsersService {
           u."firstName",
           u."lastName",
           u."phoneNumber",
+          u.category,
           u.latitude::float8,
           u.longitude::float8,
           pcl.latitude as active_latitude,
@@ -362,6 +320,7 @@ export class UsersService {
         "firstName",
         "lastName",
         "phoneNumber",
+        category,
         COALESCE(active_latitude, latitude) as latitude,
         COALESCE(active_longitude, longitude) as longitude,
         location_updated_at,

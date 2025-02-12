@@ -21,16 +21,24 @@ export class AuthService {
   }
 
   async login(user: IUser) {
-    const payload = { email: user.email, sub: user.id, type: user.type };
+    const payload = { email: user.email, sub: user.id };
+  
+    // Ajoutez la catégorie à la réponse de l'utilisateur
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      type: user.type,
+      category: user.category,  // Ajoutez la catégorie ici
+      latitude: user.latitude,
+      longitude: user.longitude,
+    };
+  
     return {
       access_token: this.jwtService.sign(payload),
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        type: user.type,
-      },
+      user: userResponse,
     };
   }
+  
 }

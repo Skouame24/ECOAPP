@@ -1,42 +1,50 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength, IsOptional, IsNumber } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
-import { UserType } from '@prisma/client';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsNumber } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { UserType, PointCategory } from '@prisma/client';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'Jean' })
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   firstName: string;
 
-  @ApiProperty({ example: 'Dupont' })
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   lastName: string;
 
-  @ApiProperty({ example: 'jean.dupont@email.com' })
+  @ApiProperty()
+  @IsNotEmpty()
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'motdepasse123' })
+  @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  @MinLength(8)
   password: string;
 
-  @ApiProperty({ example: '+33612345678' })
+  @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   phoneNumber: string;
 
-  @ApiProperty({ enum: UserType, example: UserType.CLIENT })
+  @ApiProperty({ enum: UserType })
+  @IsNotEmpty()
   @IsEnum(UserType)
   type: UserType;
 
-  @ApiProperty({ example: 48.8566, description: 'Latitude', required: false })
+  @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   latitude?: number;
 
-  @ApiProperty({ example: 2.3522, description: 'Longitude', required: false })
+  @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   longitude?: number;
+
+  @ApiPropertyOptional({ enum: PointCategory })
+  @IsOptional()
+  @IsEnum(PointCategory)
+  category?: PointCategory;
 }

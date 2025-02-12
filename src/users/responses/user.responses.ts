@@ -32,7 +32,11 @@ export class UserResponse implements Partial<UserProfile> {
 
   @ApiProperty({ required: false, nullable: true })
   longitude?: number | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  category?: string | null;  // Ajoutez la catégorie dans la réponse
 }
+
 
 export class UserLocationResponse implements UserLocation {
   @ApiProperty()
@@ -61,6 +65,7 @@ export class UserLocationHistoryResponse implements UserLocationHistory {
   @ApiProperty()
   createdAt: Date;
 }
+
 
 export class PreCollectorResponse extends UserResponse {
   @ApiProperty({ type: UserLocationResponse })

@@ -16,23 +16,22 @@ model User {
   password      String
   phoneNumber   String
   type          UserType
-  // Ajout des coordonnées de localisation pour tous les utilisateurs
   latitude      Float?
   longitude     Float?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  
+  category      PointCategory?  // Ajout du champ category pour le pré-collecteur
+
   // Relations
   clientRequests      CollectionRequest[]    @relation("ClientRequests")
   collectorRequests   CollectionRequest[]    @relation("CollectorRequests")
-  notifications       Notification[]
-  // Relation avec la localisation active du pré-collecteur
+  notifications       Notification[] 
   activeLocation      PreCollectorLocation?
-  // Historique des localisations pour les pré-collecteurs
   locationHistory     PreCollectorLocationHistory[]
 
   @@map("users")
 }
+
 
 model CollectionRequest {
   id              String            @id @default(uuid())
@@ -59,15 +58,16 @@ model CollectionRequest {
 }
 
 model CollectionPoint {
-  id          String        @id @default(uuid())
+  id          String            @id @default(uuid())
   name        String
   address     String
   latitude    Float
   longitude   Float
   wasteTypes  WasteType[]
+  category    PointCategory     @default(POUBELLE)  // Ajout du champ category
   schedule    String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   
   // Relations
   collections CollectionRequest[]
@@ -161,4 +161,12 @@ enum TransactionStatus {
 enum NotificationStatus {
   UNREAD
   READ
+}
+
+// Nouvel enum pour les catégories de points de collecte
+enum PointCategory {
+  POUBELLE
+  CENTRE_TRI
+  DECHETTERIE
+  TOUS
 }

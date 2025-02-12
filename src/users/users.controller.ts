@@ -30,7 +30,7 @@ import { UserType } from '@prisma/client';
 export class UsersController {
   private readonly logger = new Logger(UsersService.name); // Create a logger instance
   constructor(private readonly usersService: UsersService) {}
-
+ 
   @Post()
   @ApiOperation({ summary: 'Créer un nouvel utilisateur' })
   @ApiResponse({ status: 201, description: 'Utilisateur créé avec succès', type: UserResponse })
@@ -44,8 +44,12 @@ export class UsersController {
       latitude: createUserDto.latitude ?? null, // Si aucune latitude n'est fournie, elle reste null
       longitude: createUserDto.longitude ?? null, // Idem pour la longitude
     };
-    return this.usersService.create(userData);
+    const createdUser = await this.usersService.create(userData);
+
+    // Optionally, log the response and return it
+    return createdUser;
   }
+
   
   @Get('clients')
   @UseGuards(JwtAuthGuard)
