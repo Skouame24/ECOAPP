@@ -6,7 +6,8 @@ import {
   Patch,
   Param, 
   UseGuards,
-  Query 
+  Query ,
+  Logger
 } from '@nestjs/common';
 import { 
   ApiTags, 
@@ -20,13 +21,14 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { UserResponse, UserLocationResponse } from './responses/user.responses';
+import { UserResponse, UserLocationResponse, PreCollectorResponse } from './responses/user.responses';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserType } from '@prisma/client';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
+  private readonly logger = new Logger(UsersService.name); // Create a logger instance
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
@@ -36,14 +38,20 @@ export class UsersController {
   @ApiResponse({ status: 409, description: 'Email déjà utilisé' })
   @ApiBody({ type: CreateUserDto })
   async create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    // Ajoutez un contrôle pour les coordonnées
+    const userData = {
+      ...createUserDto,
+      latitude: createUserDto.latitude ?? null, // Si aucune latitude n'est fournie, elle reste null
+      longitude: createUserDto.longitude ?? null, // Idem pour la longitude
+    };
+    return this.usersService.create(userData);
   }
-
+  
   @Get('clients')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Obtenir la liste de tous les clients" })
-  @ApiResponse({ status: 200, description: "Liste des clients", isArray: true })
+  @ApiResponse({ status: 200, description: "Liste des clients", type: [UserResponse] })
   async findAllClients() {
     return this.usersService.findAllUsers(UserType.CLIENT);
   }
@@ -52,12 +60,19 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Obtenir la liste de tous les pré-collecteurs" })
-  @ApiResponse({ status: 200, description: "Liste des pré-collecteurs", isArray: true })
+  @ApiResponse({ status: 200, description: "Liste des pré-collecteurs", type: [PreCollectorResponse] })
   async findAllPreCollectors() {
-    return this.usersService.findAllUsers(UserType.PRE_COLLECTOR);
+    this.logger.debug('Début findAllPreCollectors');
+    try {
+      const result = await this.usersService.findAllUsers(UserType.PRE_COLLECTOR);
+      this.logger.debug(`Résultat findAllPreCollectors: ${JSON.stringify(result)}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Erreur dans findAllPreCollectors: ${error.message}`, error.stack);
+      throw error;
+    }
   }
-
-
+  
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -97,15 +112,12 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtenir l\'historique des positions d\'un pré-collecteur' })
-  @ApiResponse({ status: 200, description: 'Historique des positions', type: UserLocationResponse, isArray: true })
+  @ApiResponse({ status: 200, description: 'Historique des positions', type: [UserLocationResponse] })
   @ApiResponse({ status: 400, description: 'Utilisateur non pré-collecteur' })
   @ApiResponse({ status: 404, description: 'Utilisateur non trouvé' })
   async getUserLocations(@Param('id') id: string) {
     return this.usersService.getUserLocations(id);
   }
-
-
-
 
   @Get('nearby/collectors')
   @UseGuards(JwtAuthGuard)
@@ -114,7 +126,7 @@ export class UsersController {
   @ApiQuery({ name: 'latitude', type: Number, required: true })
   @ApiQuery({ name: 'longitude', type: Number, required: true })
   @ApiQuery({ name: 'radius', type: Number, required: false, description: 'Rayon en kilomètres (défaut: 5)' })
-  @ApiResponse({ status: 200, description: 'Liste des pré-collecteurs à proximité' })
+  @ApiResponse({ status: 200, description: 'Liste des pré-collecteurs à proximité', type: [PreCollectorResponse] })
   async findNearbyCollectors(
     @Query('latitude') latitude: number,
     @Query('longitude') longitude: number,

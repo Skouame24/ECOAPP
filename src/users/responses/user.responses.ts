@@ -61,3 +61,11 @@ export class UserLocationHistoryResponse implements UserLocationHistory {
   @ApiProperty()
   createdAt: Date;
 }
+
+export class PreCollectorResponse extends UserResponse {
+  @ApiProperty({ type: UserLocationResponse })
+  activeLocation?: UserLocationResponse;
+
+  @ApiProperty({ type: [UserLocationHistoryResponse] })
+  locationHistory?: UserLocationHistoryResponse[];
+}

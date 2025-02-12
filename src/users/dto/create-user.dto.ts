@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength, IsOptional, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserType } from '@prisma/client';
 
@@ -29,4 +29,14 @@ export class CreateUserDto {
   @ApiProperty({ enum: UserType, example: UserType.CLIENT })
   @IsEnum(UserType)
   type: UserType;
+
+  @ApiProperty({ example: 48.8566, description: 'Latitude', required: false })
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @ApiProperty({ example: 2.3522, description: 'Longitude', required: false })
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
 }

@@ -8,13 +8,20 @@ export const User = createParamDecorator(
       return null;
     }
 
-    // Create a consistent user object that includes both JWT and user info
+    // Create a complete user object with all properties
     const user = {
       ...request.user,
       id: request.user.sub, // Use sub as id from JWT
       sub: request.user.sub,
       email: request.user.email,
-      type: request.user.type
+      firstName: request.user.firstName,
+      lastName: request.user.lastName,
+      phoneNumber: request.user.phoneNumber,
+      type: request.user.type,
+      latitude: request.user.latitude,
+      longitude: request.user.longitude,
+      createdAt: request.user.createdAt,
+      updatedAt: request.user.updatedAt
     };
 
     // If a specific property is requested

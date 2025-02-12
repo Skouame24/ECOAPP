@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -8,6 +8,8 @@ import { Prisma, UserType } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name); // Create a logger instance
+
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -30,6 +32,7 @@ export class UsersService {
           longitude: true,
           createdAt: true,
           updatedAt: true,
+          activeLocation: true,
         },
       });
 
@@ -66,6 +69,7 @@ export class UsersService {
           longitude: true,
           createdAt: true,
           updatedAt: true,
+          activeLocation: true,
         },
       });
 
@@ -86,7 +90,10 @@ export class UsersService {
   async updateLocation(id: string, updateLocationDto: UpdateLocationDto) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: { type: true },
+      select: { 
+        type: true,
+        activeLocation: true 
+      },
     });
 
     if (!user) {
@@ -129,12 +136,29 @@ export class UsersService {
       },
     });
 
-    return activeLocation;
+    return {
+      ...activeLocation,
+      message: 'Position mise à jour avec succès'
+    };
   }
 
   async findByEmail(email: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        firstName: true,
+        lastName: true,
+        phoneNumber: true,
+        type: true,
+        latitude: true,
+        longitude: true,
+        createdAt: true,
+        updatedAt: true,
+        activeLocation: true,
+      },
     });
 
     if (!user) {
@@ -158,6 +182,24 @@ export class UsersService {
         longitude: true,
         createdAt: true,
         updatedAt: true,
+        activeLocation: {
+          select: {
+            latitude: true,
+            longitude: true,
+            updatedAt: true,
+          }
+        },
+        locationHistory: {
+          select: {
+            latitude: true,
+            longitude: true,
+            createdAt: true,
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 100 // Limit to last 100 locations
+        }
       },
     });
 
@@ -195,8 +237,12 @@ export class UsersService {
       locationHistory: user.locationHistory
     };
   }
+
+
   async findAllUsers(type: UserType) {
     try {
+      this.logger.debug(`Début findAllUsers pour le type: ${type}`);
+      
       const users = await this.prisma.user.findMany({
         where: { type },
         select: {
@@ -206,19 +252,84 @@ export class UsersService {
           email: true,
           phoneNumber: true,
           type: true,
+          latitude: true,
+          longitude: true,
           createdAt: true,
-        },
+          updatedAt: true,
+          activeLocation: {
+            select: {
+              id: true,
+              latitude: true,
+              longitude: true,
+              updatedAt: true
+            }
+          },
+          locationHistory: {
+            select: {
+              id: true,
+              latitude: true,
+              longitude: true,
+              createdAt: true
+            },
+            orderBy: {
+              createdAt: 'desc'
+            },
+            take: 10
+          }
+        }
       });
-  
-      return users;
+
+      this.logger.debug(`Utilisateurs trouvés: ${JSON.stringify(users)}`);
+
+      const mappedUsers = users.map(user => {
+        // Base user object with all common fields
+        const baseUser = {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          type: user.type,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          // Always include latitude and longitude, using activeLocation if available
+          latitude: user.activeLocation?.latitude ?? user.latitude,
+          longitude: user.activeLocation?.longitude ?? user.longitude
+        };
+
+        // Add PRE_COLLECTOR specific fields if applicable
+        if (type === UserType.PRE_COLLECTOR) {
+          return {
+            ...baseUser,
+            activeLocation: user.activeLocation ? {
+              id: user.activeLocation.id,
+              latitude: user.activeLocation.latitude,
+              longitude: user.activeLocation.longitude,
+              updatedAt: user.activeLocation.updatedAt
+            } : null,
+            locationHistory: user.locationHistory.map(location => ({
+              id: location.id,
+              latitude: location.latitude,
+              longitude: location.longitude,
+              createdAt: location.createdAt
+            }))
+          };
+        }
+
+        return baseUser;
+      });
+
+      this.logger.debug(`Résultat final: ${JSON.stringify(mappedUsers)}`);
+      return mappedUsers;
+
     } catch (error) {
+      this.logger.error(`Erreur dans findAllUsers: ${error.message}`, error.stack);
       throw new InternalServerErrorException('Erreur lors de la récupération des utilisateurs');
     }
   }
-  
 
+  
   async findNearbyPreCollectors(latitude: number, longitude: number, radiusInKm: number = 5) {
-    // Conversion explicite des paramètres en nombres à virgule flottante
     const preCollectors = await this.prisma.$queryRaw`
       WITH distances AS (
         SELECT 
@@ -228,21 +339,33 @@ export class UsersService {
           u."phoneNumber",
           u.latitude::float8,
           u.longitude::float8,
+          pcl.latitude as active_latitude,
+          pcl.longitude as active_longitude,
+          pcl."updatedAt" as location_updated_at,
           (
             6371.0 * acos(
               cos(radians(${latitude}::float8)) * 
-              cos(radians(u.latitude::float8)) * 
-              cos(radians(u.longitude::float8) - radians(${longitude}::float8)) + 
+              cos(radians(COALESCE(pcl.latitude, u.latitude)::float8)) * 
+              cos(radians(COALESCE(pcl.longitude, u.longitude)::float8) - radians(${longitude}::float8)) + 
               sin(radians(${latitude}::float8)) * 
-              sin(radians(u.latitude::float8))
+              sin(radians(COALESCE(pcl.latitude, u.latitude)::float8))
             )
           )::float8 as distance
         FROM users u
+        LEFT JOIN pre_collector_locations pcl ON u.id = pcl."preCollectorId"
         WHERE u.type = 'PRE_COLLECTOR'
-        AND u.latitude IS NOT NULL
-        AND u.longitude IS NOT NULL
+        AND (u.latitude IS NOT NULL OR pcl.latitude IS NOT NULL)
+        AND (u.longitude IS NOT NULL OR pcl.longitude IS NOT NULL)
       )
-      SELECT *
+      SELECT 
+        id,
+        "firstName",
+        "lastName",
+        "phoneNumber",
+        COALESCE(active_latitude, latitude) as latitude,
+        COALESCE(active_longitude, longitude) as longitude,
+        location_updated_at,
+        distance
       FROM distances
       WHERE distance <= ${radiusInKm}::float8
       ORDER BY distance;
