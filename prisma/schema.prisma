@@ -20,7 +20,7 @@ model User {
   longitude     Float?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  category      PointCategory?  // Ajout du champ category pour le pré-collecteur
+  category      PointCategory?  
 
   // Relations
   clientRequests      CollectionRequest[]    @relation("ClientRequests")
@@ -32,7 +32,6 @@ model User {
   @@map("users")
 }
 
-
 model CollectionRequest {
   id              String            @id @default(uuid())
   clientId        String
@@ -41,7 +40,6 @@ model CollectionRequest {
   weight          Float
   price           Float
   status          CollectionStatus  @default(PENDING)
-  // Coordonnées du lieu de collecte
   pickupLatitude  Float
   pickupLongitude Float
   createdAt       DateTime          @default(now())
@@ -64,7 +62,7 @@ model CollectionPoint {
   latitude    Float
   longitude   Float
   wasteTypes  WasteType[]
-  category    PointCategory     @default(POUBELLE)  // Ajout du champ category
+  category    PointCategory     @default(POUBELLE)
   schedule    String
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
@@ -101,7 +99,6 @@ model Notification {
   @@map("notifications")
 }
 
-// Localisation active du pré-collecteur
 model PreCollectorLocation {
   id              String    @id @default(uuid())
   preCollectorId  String    @unique
@@ -115,7 +112,6 @@ model PreCollectorLocation {
   @@map("pre_collector_locations")
 }
 
-// Historique des localisations du pré-collecteur
 model PreCollectorLocationHistory {
   id              String    @id @default(uuid())
   preCollectorId  String
@@ -127,6 +123,28 @@ model PreCollectorLocationHistory {
   preCollector    User      @relation(fields: [preCollectorId], references: [id])
 
   @@map("pre_collector_location_history")
+}
+
+// Nouvelle table pour les articles d'actualité
+model News {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("news")
+}
+
+// Nouvelle table pour les informations de tri
+model TriPlus {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tri_plus")
 }
 
 enum UserType {
@@ -163,7 +181,6 @@ enum NotificationStatus {
   READ
 }
 
-// Nouvel enum pour les catégories de points de collecte
 enum PointCategory {
   POUBELLE
   CENTRE_TRI

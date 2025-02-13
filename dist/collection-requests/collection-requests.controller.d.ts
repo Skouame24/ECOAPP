@@ -18,6 +18,7 @@ export declare class CollectionRequestsController {
             phoneNumber: string;
             createdAt: Date;
             updatedAt: Date;
+            category: import(".prisma/client").$Enums.PointCategory | null;
         } | null;
         client: {
             type: import(".prisma/client").$Enums.UserType;
@@ -31,10 +32,12 @@ export declare class CollectionRequestsController {
             phoneNumber: string;
             createdAt: Date;
             updatedAt: Date;
+            category: import(".prisma/client").$Enums.PointCategory | null;
         };
     } & {
         id: string;
         createdAt: Date;
+        preCollectorId: string | null;
         wasteType: import(".prisma/client").$Enums.WasteType;
         weight: number;
         price: number;
@@ -42,7 +45,6 @@ export declare class CollectionRequestsController {
         pickupLatitude: number;
         pickupLongitude: number;
         validatedAt: Date | null;
-        preCollectorId: string | null;
         pointId: string | null;
         clientId: string;
     }>;
@@ -65,6 +67,7 @@ export declare class CollectionRequestsController {
     } & {
         id: string;
         createdAt: Date;
+        preCollectorId: string | null;
         wasteType: import(".prisma/client").$Enums.WasteType;
         weight: number;
         price: number;
@@ -72,7 +75,6 @@ export declare class CollectionRequestsController {
         pickupLatitude: number;
         pickupLongitude: number;
         validatedAt: Date | null;
-        preCollectorId: string | null;
         pointId: string | null;
         clientId: string;
     })[]>;
@@ -92,6 +94,7 @@ export declare class CollectionRequestsController {
     } & {
         id: string;
         createdAt: Date;
+        preCollectorId: string | null;
         wasteType: import(".prisma/client").$Enums.WasteType;
         weight: number;
         price: number;
@@ -99,7 +102,6 @@ export declare class CollectionRequestsController {
         pickupLatitude: number;
         pickupLongitude: number;
         validatedAt: Date | null;
-        preCollectorId: string | null;
         pointId: string | null;
         clientId: string;
     })[]>;
@@ -132,6 +134,7 @@ export declare class CollectionRequestsController {
     } & {
         id: string;
         createdAt: Date;
+        preCollectorId: string | null;
         wasteType: import(".prisma/client").$Enums.WasteType;
         weight: number;
         price: number;
@@ -139,7 +142,6 @@ export declare class CollectionRequestsController {
         pickupLatitude: number;
         pickupLongitude: number;
         validatedAt: Date | null;
-        preCollectorId: string | null;
         pointId: string | null;
         clientId: string;
     }>;
@@ -171,6 +173,7 @@ export declare class CollectionRequestsController {
     } & {
         id: string;
         createdAt: Date;
+        preCollectorId: string | null;
         wasteType: import(".prisma/client").$Enums.WasteType;
         weight: number;
         price: number;
@@ -178,7 +181,6 @@ export declare class CollectionRequestsController {
         pickupLatitude: number;
         pickupLongitude: number;
         validatedAt: Date | null;
-        preCollectorId: string | null;
         pointId: string | null;
         clientId: string;
     }>;

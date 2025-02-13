@@ -17,6 +17,8 @@ const auth_module_1 = require("./auth/auth.module");
 const location_module_1 = require("./location/location.module");
 const collection_requests_module_1 = require("./collection-requests/collection-requests.module");
 const users_module_1 = require("./users/users.module");
+const news_module_1 = require("./news/news.module");
+const triplus_module_1 = require("./triplus/triplus.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -32,6 +34,8 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             location_module_1.LocationModule,
             collection_requests_module_1.CollectionRequestsModule,
+            news_module_1.NewsModule,
+            triplus_module_1.TriPlusModule
         ],
         providers: [],
     })

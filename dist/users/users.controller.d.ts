@@ -4,6 +4,7 @@ import { UpdateLocationDto } from './dto/update-location.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 export declare class UsersController {
     private readonly usersService;
+    private readonly logger;
     constructor(usersService: UsersService);
     create(createUserDto: CreateUserDto): Promise<{
         type: import(".prisma/client").$Enums.UserType;
@@ -16,25 +17,89 @@ export declare class UsersController {
         phoneNumber: string;
         createdAt: Date;
         updatedAt: Date;
+        category: import(".prisma/client").$Enums.PointCategory | null;
+        activeLocation: {
+            latitude: number;
+            longitude: number;
+            id: string;
+            updatedAt: Date;
+            preCollectorId: string;
+        } | null;
     }>;
-    findAllClients(): Promise<{
-        type: import(".prisma/client").$Enums.UserType;
+    findAllClients(): Promise<({
         id: string;
         firstName: string;
         lastName: string;
         email: string;
         phoneNumber: string;
-        createdAt: Date;
-    }[]>;
-    findAllPreCollectors(): Promise<{
         type: import(".prisma/client").$Enums.UserType;
+        category: import(".prisma/client").$Enums.PointCategory | null;
+        createdAt: Date;
+        updatedAt: Date;
+        latitude: number | null;
+        longitude: number | null;
+    } | {
+        activeLocation: {
+            id: string;
+            latitude: number;
+            longitude: number;
+            updatedAt: Date;
+        } | null;
+        locationHistory: {
+            id: string;
+            latitude: number;
+            longitude: number;
+            createdAt: Date;
+        }[];
         id: string;
         firstName: string;
         lastName: string;
         email: string;
         phoneNumber: string;
+        type: import(".prisma/client").$Enums.UserType;
+        category: import(".prisma/client").$Enums.PointCategory | null;
         createdAt: Date;
-    }[]>;
+        updatedAt: Date;
+        latitude: number | null;
+        longitude: number | null;
+    })[]>;
+    findAllPreCollectors(): Promise<({
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        phoneNumber: string;
+        type: import(".prisma/client").$Enums.UserType;
+        category: import(".prisma/client").$Enums.PointCategory | null;
+        createdAt: Date;
+        updatedAt: Date;
+        latitude: number | null;
+        longitude: number | null;
+    } | {
+        activeLocation: {
+            id: string;
+            latitude: number;
+            longitude: number;
+            updatedAt: Date;
+        } | null;
+        locationHistory: {
+            id: string;
+            latitude: number;
+            longitude: number;
+            createdAt: Date;
+        }[];
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        phoneNumber: string;
+        type: import(".prisma/client").$Enums.UserType;
+        category: import(".prisma/client").$Enums.PointCategory | null;
+        createdAt: Date;
+        updatedAt: Date;
+        latitude: number | null;
+        longitude: number | null;
+    })[]>;
     findOne(id: string): Promise<{
         type: import(".prisma/client").$Enums.UserType;
         latitude: number | null;
@@ -46,6 +111,17 @@ export declare class UsersController {
         phoneNumber: string;
         createdAt: Date;
         updatedAt: Date;
+        category: import(".prisma/client").$Enums.PointCategory | null;
+        activeLocation: {
+            latitude: number;
+            longitude: number;
+            updatedAt: Date;
+        } | null;
+        locationHistory: {
+            latitude: number;
+            longitude: number;
+            createdAt: Date;
+        }[];
     }>;
     update(id: string, updateUserDto: UpdateUserDto): Promise<{
         type: import(".prisma/client").$Enums.UserType;
@@ -58,15 +134,7 @@ export declare class UsersController {
         phoneNumber: string;
         createdAt: Date;
         updatedAt: Date;
-    }>;
-    updateLocation(id: string, updateLocationDto: UpdateLocationDto): Promise<{
-        latitude: number;
-        longitude: number;
-        id: string;
-        updatedAt: Date;
-        preCollectorId: string;
-    }>;
-    getUserLocations(id: string): Promise<{
+        category: import(".prisma/client").$Enums.PointCategory | null;
         activeLocation: {
             latitude: number;
             longitude: number;
@@ -74,13 +142,8 @@ export declare class UsersController {
             updatedAt: Date;
             preCollectorId: string;
         } | null;
-        locationHistory: {
-            latitude: number;
-            longitude: number;
-            id: string;
-            createdAt: Date;
-            preCollectorId: string;
-        }[];
     }>;
+    updateLocation(id: string, updateLocationDto: UpdateLocationDto): Promise<any>;
+    getUserLocations(id: string): Promise<any>;
     findNearbyCollectors(latitude: number, longitude: number, radius?: number): Promise<unknown>;
 }

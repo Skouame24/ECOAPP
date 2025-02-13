@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserLocationHistoryResponse = exports.UserLocationResponse = exports.UserResponse = void 0;
+exports.PreCollectorResponse = exports.UserLocationHistoryResponse = exports.UserLocationResponse = exports.UserResponse = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const client_1 = require("@prisma/client");
 class UserResponse {
@@ -55,6 +55,10 @@ __decorate([
     (0, swagger_1.ApiProperty)({ required: false, nullable: true }),
     __metadata("design:type", Object)
 ], UserResponse.prototype, "longitude", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, nullable: true }),
+    __metadata("design:type", Object)
+], UserResponse.prototype, "category", void 0);
 class UserLocationResponse {
 }
 exports.UserLocationResponse = UserLocationResponse;
@@ -93,4 +97,15 @@ __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", Date)
 ], UserLocationHistoryResponse.prototype, "createdAt", void 0);
+class PreCollectorResponse extends UserResponse {
+}
+exports.PreCollectorResponse = PreCollectorResponse;
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: UserLocationResponse }),
+    __metadata("design:type", UserLocationResponse)
+], PreCollectorResponse.prototype, "activeLocation", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [UserLocationHistoryResponse] }),
+    __metadata("design:type", Array)
+], PreCollectorResponse.prototype, "locationHistory", void 0);
 //# sourceMappingURL=user.responses.js.map

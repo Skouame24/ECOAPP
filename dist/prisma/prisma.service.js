@@ -9,12 +9,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PrismaService = void 0;
 const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
+const child_process_1 = require("child_process");
 let PrismaService = class PrismaService extends client_1.PrismaClient {
     async onModuleInit() {
+        try {
+            (0, child_process_1.execSync)('npx prisma generate', { stdio: 'inherit' });
+        }
+        catch (error) {
+            console.error('Error running prisma generate:', error);
+        }
         await this.$connect();
-    }
-    async onModuleDestroy() {
-        await this.$disconnect();
     }
 };
 exports.PrismaService = PrismaService;

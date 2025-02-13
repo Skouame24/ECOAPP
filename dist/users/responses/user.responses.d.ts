@@ -11,6 +11,7 @@ export declare class UserResponse implements Partial<UserProfile> {
     updatedAt: Date;
     latitude?: number | null;
     longitude?: number | null;
+    category?: string | null;
 }
 export declare class UserLocationResponse implements UserLocation {
     id: string;
@@ -23,4 +24,8 @@ export declare class UserLocationHistoryResponse implements UserLocationHistory 
     latitude: number;
     longitude: number;
     createdAt: Date;
+}
+export declare class PreCollectorResponse extends UserResponse {
+    activeLocation?: UserLocationResponse;
+    locationHistory?: UserLocationHistoryResponse[];
 }

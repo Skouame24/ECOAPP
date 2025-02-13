@@ -25,15 +25,31 @@ const client_1 = require("@prisma/client");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
+        this.logger = new common_1.Logger(users_service_1.UsersService.name);
     }
     async create(createUserDto) {
-        return this.usersService.create(createUserDto);
+        const userData = {
+            ...createUserDto,
+            latitude: createUserDto.latitude ?? null,
+            longitude: createUserDto.longitude ?? null,
+        };
+        const createdUser = await this.usersService.create(userData);
+        return createdUser;
     }
     async findAllClients() {
         return this.usersService.findAllUsers(client_1.UserType.CLIENT);
     }
     async findAllPreCollectors() {
-        return this.usersService.findAllUsers(client_1.UserType.PRE_COLLECTOR);
+        this.logger.debug('Début findAllPreCollectors');
+        try {
+            const result = await this.usersService.findAllUsers(client_1.UserType.PRE_COLLECTOR);
+            this.logger.debug(`Résultat findAllPreCollectors: ${JSON.stringify(result)}`);
+            return result;
+        }
+        catch (error) {
+            this.logger.error(`Erreur dans findAllPreCollectors: ${error.message}`, error.stack);
+            throw error;
+        }
     }
     async findOne(id) {
         return this.usersService.findById(id);
@@ -69,7 +85,7 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Obtenir la liste de tous les clients" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Liste des clients", isArray: true }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Liste des clients", type: [user_responses_1.UserResponse] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
@@ -79,7 +95,7 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: "Obtenir la liste de tous les pré-collecteurs" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Liste des pré-collecteurs", isArray: true }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Liste des pré-collecteurs", type: [user_responses_1.PreCollectorResponse] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
@@ -129,7 +145,7 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Obtenir l\'historique des positions d\'un pré-collecteur' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Historique des positions', type: user_responses_1.UserLocationResponse, isArray: true }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Historique des positions', type: [user_responses_1.UserLocationResponse] }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Utilisateur non pré-collecteur' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Utilisateur non trouvé' }),
     __param(0, (0, common_1.Param)('id')),
@@ -145,7 +161,7 @@ __decorate([
     (0, swagger_1.ApiQuery)({ name: 'latitude', type: Number, required: true }),
     (0, swagger_1.ApiQuery)({ name: 'longitude', type: Number, required: true }),
     (0, swagger_1.ApiQuery)({ name: 'radius', type: Number, required: false, description: 'Rayon en kilomètres (défaut: 5)' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Liste des pré-collecteurs à proximité' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Liste des pré-collecteurs à proximité', type: [user_responses_1.PreCollectorResponse] }),
     __param(0, (0, common_1.Query)('latitude')),
     __param(1, (0, common_1.Query)('longitude')),
     __param(2, (0, common_1.Query)('radius')),

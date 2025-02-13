@@ -1,4 +1,4 @@
-import { UserType } from '@prisma/client';
+import { UserType, PointCategory } from '@prisma/client';
 export declare class CreateUserDto {
     firstName: string;
     lastName: string;
@@ -6,4 +6,7 @@ export declare class CreateUserDto {
     password: string;
     phoneNumber: string;
     type: UserType;
+    latitude?: number;
+    longitude?: number;
+    category?: PointCategory;
 }

@@ -14,6 +14,9 @@ export declare class AuthService {
             firstName: string;
             lastName: string;
             type: import(".prisma/client").$Enums.UserType;
+            category: import(".prisma/client").$Enums.PointCategory;
+            latitude: any;
+            longitude: any;
         };
     }>;
 }

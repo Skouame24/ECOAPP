@@ -12,7 +12,15 @@ exports.User = (0, common_1.createParamDecorator)((data, ctx) => {
         id: request.user.sub,
         sub: request.user.sub,
         email: request.user.email,
-        type: request.user.type
+        firstName: request.user.firstName,
+        lastName: request.user.lastName,
+        phoneNumber: request.user.phoneNumber,
+        type: request.user.type,
+        category: request.user.category,
+        latitude: request.user.latitude,
+        longitude: request.user.longitude,
+        createdAt: request.user.createdAt,
+        updatedAt: request.user.updatedAt
     };
     if (data) {
         return user[data];
