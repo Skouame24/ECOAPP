@@ -1,10 +1,21 @@
-import { PointCategory, UserType } from '@prisma/client';
+import { UserType, PointCategory } from '@prisma/client';
 
 export interface IUser {
   id: string;
-  email: string;
   firstName: string;
   lastName: string;
+  email: string;
+  phoneNumber: string;
   type: UserType;
-  category:PointCategory
+  latitude: number | null;
+  longitude: number | null;
+  category: PointCategory | null;
+  createdAt: Date;
+  updatedAt: Date;
+  activeLocation?: {
+    id: string;
+    latitude: number;
+    longitude: number;
+    updatedAt: Date;
+  } | null;
 }

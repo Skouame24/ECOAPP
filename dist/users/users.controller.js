@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const users_service_1 = require("./users.service");
 const update_user_dto_1 = require("./dto/update-user.dto");
-const update_location_dto_1 = require("./dto/update-location.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const user_responses_1 = require("./responses/user.responses");
 const create_user_dto_1 = require("./dto/create-user.dto");
@@ -28,13 +27,7 @@ let UsersController = class UsersController {
         this.logger = new common_1.Logger(users_service_1.UsersService.name);
     }
     async create(createUserDto) {
-        const userData = {
-            ...createUserDto,
-            latitude: createUserDto.latitude ?? null,
-            longitude: createUserDto.longitude ?? null,
-        };
-        const createdUser = await this.usersService.create(userData);
-        return createdUser;
+        return this.usersService.create(createUserDto);
     }
     async findAllClients() {
         return this.usersService.findAllUsers(client_1.UserType.CLIENT);
@@ -56,12 +49,6 @@ let UsersController = class UsersController {
     }
     async update(id, updateUserDto) {
         return this.usersService.update(id, updateUserDto);
-    }
-    async updateLocation(id, updateLocationDto) {
-        return this.usersService.updateLocation(id, updateLocationDto);
-    }
-    async getUserLocations(id) {
-        return this.usersService.getUserLocations(id);
     }
     async findNearbyCollectors(latitude, longitude, radius) {
         return this.usersService.findNearbyPreCollectors(latitude, longitude, radius);
@@ -126,33 +113,6 @@ __decorate([
     __metadata("design:paramtypes", [String, update_user_dto_1.UpdateUserDto]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "update", null);
-__decorate([
-    (0, common_1.Patch)(':id/location'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Mettre à jour la position d\'un pré-collecteur' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Position mise à jour avec succès', type: user_responses_1.UserLocationResponse }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Données invalides ou utilisateur non pré-collecteur' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Utilisateur non trouvé' }),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_location_dto_1.UpdateLocationDto]),
-    __metadata("design:returntype", Promise)
-], UsersController.prototype, "updateLocation", null);
-__decorate([
-    (0, common_1.Get)(':id/locations'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Obtenir l\'historique des positions d\'un pré-collecteur' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Historique des positions', type: [user_responses_1.UserLocationResponse] }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Utilisateur non pré-collecteur' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Utilisateur non trouvé' }),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], UsersController.prototype, "getUserLocations", null);
 __decorate([
     (0, common_1.Get)('nearby/collectors'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

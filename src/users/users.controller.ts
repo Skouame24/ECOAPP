@@ -6,7 +6,7 @@ import {
   Patch,
   Param, 
   UseGuards,
-  Query ,
+  Query,
   Logger
 } from '@nestjs/common';
 import { 
@@ -19,7 +19,6 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdateLocationDto } from './dto/update-location.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserResponse, UserLocationResponse, PreCollectorResponse } from './responses/user.responses';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -28,7 +27,7 @@ import { UserType } from '@prisma/client';
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  private readonly logger = new Logger(UsersService.name); // Create a logger instance
+  private readonly logger = new Logger(UsersService.name);
   constructor(private readonly usersService: UsersService) {}
  
   @Post()
@@ -38,18 +37,8 @@ export class UsersController {
   @ApiResponse({ status: 409, description: 'Email déjà utilisé' })
   @ApiBody({ type: CreateUserDto })
   async create(@Body() createUserDto: CreateUserDto) {
-    // Ajoutez un contrôle pour les coordonnées
-    const userData = {
-      ...createUserDto,
-      latitude: createUserDto.latitude ?? null, // Si aucune latitude n'est fournie, elle reste null
-      longitude: createUserDto.longitude ?? null, // Idem pour la longitude
-    };
-    const createdUser = await this.usersService.create(userData);
-
-    // Optionally, log the response and return it
-    return createdUser;
+    return this.usersService.create(createUserDto);
   }
-
   
   @Get('clients')
   @UseGuards(JwtAuthGuard)
@@ -98,30 +87,16 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Patch(':id/location')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Mettre à jour la position d\'un pré-collecteur' })
-  @ApiResponse({ status: 200, description: 'Position mise à jour avec succès', type: UserLocationResponse })
-  @ApiResponse({ status: 400, description: 'Données invalides ou utilisateur non pré-collecteur' })
-  @ApiResponse({ status: 404, description: 'Utilisateur non trouvé' })
-  async updateLocation(
-    @Param('id') id: string,
-    @Body() updateLocationDto: UpdateLocationDto
-  ) {
-    return this.usersService.updateLocation(id, updateLocationDto);
-  }
-
-  @Get(':id/locations')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtenir l\'historique des positions d\'un pré-collecteur' })
-  @ApiResponse({ status: 200, description: 'Historique des positions', type: [UserLocationResponse] })
-  @ApiResponse({ status: 400, description: 'Utilisateur non pré-collecteur' })
-  @ApiResponse({ status: 404, description: 'Utilisateur non trouvé' })
-  async getUserLocations(@Param('id') id: string) {
-    return this.usersService.getUserLocations(id);
-  }
+  // @Get(':id/locations')
+  // @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
+  // @ApiOperation({ summary: 'Obtenir l\'historique des positions d\'un pré-collecteur' })
+  // @ApiResponse({ status: 200, description: 'Historique des positions', type: [UserLocationResponse] })
+  // @ApiResponse({ status: 400, description: 'Utilisateur non pré-collecteur' })
+  // @ApiResponse({ status: 404, description: 'Utilisateur non trouvé' })
+  // async getUserLocations(@Param('id') id: string) {
+  //   return this.usersService.getUserLocations(id);
+  // }
 
   @Get('nearby/collectors')
   @UseGuards(JwtAuthGuard)

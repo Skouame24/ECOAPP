@@ -1,6 +1,5 @@
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdateLocationDto } from './dto/update-location.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 export declare class UsersController {
     private readonly usersService;
@@ -143,7 +142,5 @@ export declare class UsersController {
             preCollectorId: string;
         } | null;
     }>;
-    updateLocation(id: string, updateLocationDto: UpdateLocationDto): Promise<any>;
-    getUserLocations(id: string): Promise<any>;
     findNearbyCollectors(latitude: number, longitude: number, radius?: number): Promise<unknown>;
 }

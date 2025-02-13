@@ -286,6 +286,8 @@ export class UsersService {
     }
   }
 
+  
+
   async findNearbyPreCollectors(latitude: number, longitude: number, radiusInKm: number = 5) {
     const preCollectors = await this.prisma.$queryRaw`
       WITH distances AS (

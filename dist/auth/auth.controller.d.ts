@@ -12,9 +12,9 @@ export declare class AuthController {
             firstName: string;
             lastName: string;
             type: import(".prisma/client").$Enums.UserType;
-            category: import(".prisma/client").$Enums.PointCategory;
-            latitude: any;
-            longitude: any;
+            category: import(".prisma/client").$Enums.PointCategory | null;
+            latitude: number | null;
+            longitude: number | null;
         };
     }>;
     getProfile(user: IUser): IUser;
